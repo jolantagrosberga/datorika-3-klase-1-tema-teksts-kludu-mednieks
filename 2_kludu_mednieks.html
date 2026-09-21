@@ -41,6 +41,14 @@ button{font:inherit;font-size:17px;padding:10px 20px;border:0;border-radius:10px
 button.alt{background:#C75000}
 button:disabled{background:#b9c2ce;cursor:default}
 .msg{font-size:18px;font-weight:bold;min-height:26px}
+.helpbtn{background:#2e7d32}
+.helpbtn.hidden{display:none}
+.opts{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.opts span{font-size:15px;color:#8a3d00;margin-right:4px}
+.opt{font:inherit;font-size:20px;padding:5px 16px;border:2px solid #1F4E79;border-radius:10px;
+     background:#fff;color:#1F4E79;cursor:pointer}
+.opt:hover{background:#e6eef8}
+.opt.no{border-color:#c62828;color:#c62828;background:#ffecec;text-decoration:line-through;cursor:default}
 .msg.good{color:#2e7d32}.msg.bad{color:#c62828}
 .hintbox{background:#fff6ec;border-left:6px solid #C75000;border-radius:0 10px 10px 0;padding:8px 16px;
          font-size:16px;color:#8a3d00;margin-top:6px;height:42px;display:flex;align-items:center}
@@ -89,6 +97,7 @@ footer .cred b{display:block;color:#1F4E79;font-size:14px}
   <div class="panel">
     <input type="text" id="answer" placeholder="Raksti vārdu pareizi..." disabled autocomplete="off">
     <button id="check" disabled>Pārbaudīt</button>
+    <button id="help" class="helpbtn" disabled title="Parādīt vārda variantus">? Palīdzība</button>
     <button class="alt" id="next">Nākamais teksts</button>
     <div class="msg" id="msg"></div>
   </div>
@@ -2470,6 +2479,7 @@ function pick(i, el){
   if(typeof tok === "object" && !tok.ok && !tok.done){
     sel = i;
     $("answer").disabled = false; $("check").disabled = false;
+    $("help").disabled = (level === "grūts");
     $("answer").value = "";
     $("hint").textContent = (level === "grūts")
       ? "Grūtajā līmenī padomu nav. Ieraksti vārdu pareizi!"
@@ -2487,22 +2497,83 @@ function pick(i, el){
   }
 }
 
+function accept(val, viaHelp){
+  if(sel === null) return false;
+  const tok = cur.w[sel];
+  if(val === tok.g){
+    tok.done = true; found++; score += viaHelp ? 2 : 5; sel = null;
+    $("msg").textContent = viaHelp ? "Pareizi! (+2 punkti ar palīdzību)" : "Pareizi! (+5 punkti)";
+    $("msg").className = "msg good";
+    $("answer").value = ""; $("answer").disabled = true; $("check").disabled = true; $("help").disabled = true;
+    render();
+    return true;
+  }
+  return false;
+}
+
 function check(){
   if(sel === null) return;
-  const tok = cur.w[sel];
-  const val = $("answer").value.trim();
-  if(val === tok.g){
-    tok.done = true; found++; score += 5; sel = null;
-    $("msg").textContent = "Pareizi!"; $("msg").className = "msg good";
-    $("answer").value = ""; $("answer").disabled = true; $("check").disabled = true;
-    render();
-  } else {
+  if(!accept($("answer").value.trim(), false)){
     $("msg").textContent = (level === "grūts")
       ? "Vēl ne. Ieskaties vārdā uzmanīgi un mēģini vēlreiz."
-      : "Vēl ne. Paskaties uz padomu un mēģini vēlreiz.";
+      : "Vēl ne. Paskaties uz padomu vai spied «Palīdzība».";
     $("msg").className = "msg bad";
     $("answer").select();
   }
+}
+
+/* --- Palīdzība: 3–4 varianti, viens pareizs --- */
+const DIAC_BASE = {"ā":"a","č":"c","ē":"e","ģ":"g","ī":"i","ķ":"k","ļ":"l","ņ":"n","š":"s","ū":"u","ž":"z"};
+const DIAC_ADD = {"a":"ā","c":"č","e":"ē","g":"ģ","i":"ī","k":"ķ","l":"ļ","n":"ņ","s":"š","u":"ū","z":"ž"};
+
+function variants(good, bad){
+  const out = new Set();
+  if(bad && bad !== good) out.add(bad);
+  // bez garumzīmēm un mīkstinājumiem
+  const plain = [...good].map(c=>DIAC_BASE[c.toLowerCase()] ? (c===c.toUpperCase()?DIAC_BASE[c.toLowerCase()].toUpperCase():DIAC_BASE[c]) : c).join("");
+  if(plain !== good) out.add(plain);
+  // viens burts dubultots
+  const L = good.length;
+  for(let k = 1; k < L-1 && out.size < 6; k++){
+    const c = good[k];
+    if(c !== " " && /[a-zāčēģīķļņšūž]/i.test(c)){ out.add(good.slice(0,k+1) + c + good.slice(k+1)); break; }
+  }
+  // lieka garumzīme patskanim vārda sākumā (ne galotnē — tur tā varētu radīt citu pareizu formu)
+  for(let k = 1; k < L-2; k++){
+    const c = good[k];
+    if("aeiu".includes(c)){ out.add(good.slice(0,k) + DIAC_ADD[c] + good.slice(k+1)); break; }
+  }
+  // izlaists burts
+  if(L > 3) out.add(good.slice(0, Math.floor(L/2)) + good.slice(Math.floor(L/2)+1));
+  out.delete(good);
+  return [...out];
+}
+
+function showHelp(){
+  if(sel === null || level === "grūts") return;
+  const tok = cur.w[sel];
+  const wrong = variants(tok.g, tok.b);
+  const pick3 = wrong.slice(0, 3);
+  const all = pick3.concat([tok.g]).sort(()=>Math.random()-0.5);
+  const box = $("hint");
+  box.innerHTML = '<div class="opts"><span>Izvēlies pareizo vārdu:</span></div>';
+  const wrap = box.querySelector(".opts");
+  all.forEach(v=>{
+    const b = document.createElement("button");
+    b.className = "opt"; b.textContent = v;
+    b.onclick = ()=>{
+      if(b.classList.contains("no")) return;
+      if(!accept(v, true)){
+        b.classList.add("no");
+        $("msg").textContent = "Nē, šis nav pareizais. Izvēlies citu.";
+        $("msg").className = "msg bad";
+      } else {
+        box.textContent = "Izvēlies nākamo vārdu, kurā, tavuprāt, ir kļūda.";
+      }
+    };
+    wrap.appendChild(b);
+  });
+  $("help").disabled = true;
 }
 
 const FONTSIZE = {"viegls":"25px","vidējs":"22px","grūts":"19px"};
@@ -2515,6 +2586,8 @@ function next(){
   total = cur.w.filter(t=>typeof t==="object" && !t.ok).length;
   sel = null;
   $("answer").value=""; $("answer").disabled=true; $("check").disabled=true;
+  $("help").disabled = true;
+  $("help").classList.toggle("hidden", level === "grūts");
   $("msg").textContent=""; $("hint").textContent = (level === "grūts")
     ? "Grūtais līmenis: padomu nav. Atrodi visas kļūdas pats!"
     : "Izvēlies vārdu, kurā, tavuprāt, ir kļūda.";
@@ -2522,6 +2595,7 @@ function next(){
 }
 
 $("check").onclick = check;
+$("help").onclick = showHelp;
 $("next").onclick = next;
 $("answer").addEventListener("keydown", e=>{ if(e.key==="Enter") check(); });
 buildLevels();
