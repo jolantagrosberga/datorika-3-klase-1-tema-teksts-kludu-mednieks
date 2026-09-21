@@ -42,6 +42,22 @@ button.alt{background:#C75000}
 button:disabled{background:#b9c2ce;cursor:default}
 .msg{font-size:18px;font-weight:bold;min-height:26px}
 .helpbtn{background:#2e7d32}
+.despair{background:#8a3d00;user-select:none;-webkit-user-select:none;touch-action:none}
+.despair:active{background:#c62828}
+#text.reveal .w[data-err="1"]{background:#ffd6d6;color:#c62828;font-weight:bold;outline:2px solid #c62828}
+.hidden{display:none !important}
+.pill.lock{border-color:#c5ccd6;color:#9aa4b2;background:#f4f6f9;cursor:not-allowed}
+.pill.done{border-color:#2e7d32;color:#2e7d32}
+.pill.done.on{background:#2e7d32;color:#fff}
+.pill.th{border-color:#1F4E79;color:#1F4E79}
+.pill.th.on{background:#1F4E79;color:#fff}
+.chal{margin-left:2px;font:inherit;font-size:15px;padding:6px 18px;border:0;border-radius:999px;
+      background:#7030A0;color:#fff;cursor:pointer}
+.chal:disabled{background:#c5ccd6;cursor:not-allowed}
+.gap{font:inherit;font-size:inherit;color:#1F4E79;font-weight:bold;border:0;border-bottom:2px dashed #7030A0;
+     background:#f4ecfb;border-radius:4px 4px 0 0;padding:0 4px;min-width:90px;width:110px;text-align:center;outline:none}
+.gap:focus{background:#ead9f7;border-bottom-style:solid}
+.gap.filled{background:#e3ecf8;border-bottom:2px solid #1F4E79}
 .helpbtn.hidden{display:none}
 .opts{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .opts span{font-size:15px;color:#8a3d00;margin-right:4px}
@@ -76,7 +92,7 @@ footer .cred b{display:block;color:#1F4E79;font-size:14px}
   <header>
     <div>
       <h1>Kļūdu mednieks</h1>
-      <div class="sub">Atrodi vārdu ar kļūdu un uzklikšķini uz tā — tas kļūs sarkans. Tad ieraksti vārdu pareizi.</div>
+      <div class="sub">Izvēlies tēmu. Līmeņi atveras pēc kārtas. Atrodi vārdu ar kļūdu, uzklikšķini uz tā un ieraksti pareizi.</div>
     </div>
     <div class="stats">
       <div class="stat"><b id="sFound">0</b><span>atrastas</span></div>
@@ -86,8 +102,11 @@ footer .cred b{display:block;color:#1F4E79;font-size:14px}
   </header>
 
   <div class="rows">
-    <span class="lbl">Līmenis:</span>
+    <span class="lbl">Tēma:</span>
+    <div class="pills" id="themes"></div>
+    <span class="lbl" style="margin-left:8px">Līmenis:</span>
     <div class="pills" id="levels"></div>
+    <button class="chal" id="chal" disabled title="Kļūst pieejams, kad izpildīti visi trīs līmeņi">&#9733; Izaicinājums</button>
   </div>
 
   <div class="title" id="title"></div>
@@ -98,7 +117,9 @@ footer .cred b{display:block;color:#1F4E79;font-size:14px}
     <input type="text" id="answer" placeholder="Raksti vārdu pareizi..." disabled autocomplete="off">
     <button id="check" disabled>Pārbaudīt</button>
     <button id="help" class="helpbtn" disabled title="Parādīt vārda variantus">? Palīdzība</button>
-    <button class="alt" id="next">Nākamais teksts</button>
+    <button id="despair" class="despair" title="Turi nospiestu, lai redzētu, kur ir kļūdas">&#128561; Izmisums</button>
+    <button class="alt" id="next" disabled>Nākamais līmenis &#8594;</button>
+    <button class="alt hidden" id="back">&#8592; Atpakaļ uz līmeņiem</button>
     <div class="msg" id="msg"></div>
   </div>
   <div class="hintbox" id="hint">Izvēlies vārdu, kurā, tavuprāt, ir kļūda.</div>
@@ -644,11 +665,11 @@ const LEVELS = {
     ".",
     "Pagrabā",
     "ir",
-    "vēss",
+    "vēsi",
     "un",
     {
-     "b": "tumsss",
-     "g": "tumšs",
+     "b": "tumšši",
+     "g": "tumši",
      "h": "Šajā vārdā ir par vienu burtu par daudz."
     },
     ".",
@@ -763,7 +784,7 @@ const LEVELS = {
     ".",
     "Uz",
     "ledus",
-    "čīkst",
+    "šņirkst",
     {
      "b": "slidass",
      "g": "slidas",
@@ -975,8 +996,8 @@ const LEVELS = {
     "vēl",
     "ir",
     {
-     "b": "gaišss",
-     "g": "gaišs",
+     "b": "gaišši",
+     "g": "gaiši",
      "h": "Šajā vārdā ir par vienu burtu par daudz."
     },
     ".",
@@ -1413,11 +1434,11 @@ const LEVELS = {
     ".",
     "Tur",
     "bija",
-    "sauss",
+    "sausi",
     "un",
     {
-     "b": "siltts",
-     "g": "silts",
+     "b": "siltti",
+     "g": "silti",
      "h": "Šajā vārdā ir par vienu burtu par daudz."
     },
     ".",
@@ -1548,7 +1569,7 @@ const LEVELS = {
     },
     ".",
     "Logos",
-    "degās",
+    "dega",
     "siltas",
     {
      "b": "lampinas",
@@ -1837,10 +1858,11 @@ const LEVELS = {
     },
     ".",
     {
-     "b": "pļavā",
-     "g": "Pļavā",
+     "b": "virs",
+     "g": "Virs",
      "h": "Teikums sākas ar lielo burtu."
     },
+    "pļavas",
     "dziedāja",
     "cīruļi",
     ".",
@@ -2254,8 +2276,8 @@ const LEVELS = {
     "dienu",
     "ķēniņš",
     {
-     "b": "saucadēlus",
-     "g": "sauca dēlus",
+     "b": "pasaucadēlus",
+     "g": "pasauca dēlus",
      "h": "Starp diviem vārdiem jābūt atstarpei."
     },
     ".",
@@ -2269,7 +2291,7 @@ const LEVELS = {
     },
     ".",
     "Valsti",
-    "mantos",
+    "mantošot",
     {
      "b": "gudraakais",
      "g": "gudrākais",
@@ -2424,19 +2446,81 @@ const LEVELS = {
  ]
 };
 
+const CHALLENGE = {"Rudens": {"t": "Ezīša rudens", "w": ["Mežmalā", "zem", "veca", "celma", "dzīvoja", "mazs", {"gap": true}, ".", "Visu", "vasaru", "viņš", "staigāja", "pa", "pļavu", "un", "meklēja", {"gap": true}, ".", "Kad", "lapas", "kokos", "sāka", "dzeltēt", ",", "ezītis", "saprata", ",", "ka", "tuvojas", {"gap": true}, ".", "Naktis", "kļuva", "vēsākas", ",", "un", "rīta", "zāle", "bija", "slapja", "no", "rasas", ".", "Ezītis", "zināja", ",", "ka", "ziemā", "viņš", "gulēs", "ilgu", {"gap": true}, ".", "Tāpēc", "viņam", "vajadzēja", "sagatavot", "siltu", "un", "sausu", {"gap": true}, ".", "Viņš", "vāca", "sausas", "lapas", ",", "sūnas", "un", "mīkstu", {"gap": true}, ".", "Visu", "to", "viņš", "nesa", "uz", "savu", "slēptuvi", "zem", "celma", ".", "Pa", "ceļam", "viņš", "satika", "čaklu", {"gap": true}, ".", "Vāvere", "steidzās", "paslēpt", "riekstus", "un", {"gap": true}, ".", "Vāvere", "pastāstīja", ",", "ka", "arī", "viņa", "gatavojas", "ziemai", ".", "Ezītis", "priecājās", ",", "ka", "mežā", "ir", "tik", "daudz", {"gap": true}, ".", "Kādu", "vakaru", "sāka", "līt", "auksts", "un", "stiprs", {"gap": true}, ".", "Ezītis", "paslēpās", "savā", "mājvietā", "un", "klausījās", ",", "kā", "lietus", "bungo", "pa", {"gap": true}, ".", "No", "rīta", "mežs", "bija", "pelēks", "un", {"gap": true}, ".", "Pēdējās", "lapas", "bija", "nokritušas", "no", "kokiem", ".", "Ezītis", "vēl", "pēdējo", "reizi", "izgāja", "pastaigā", "pa", "mežu", ".", "Viņš", "atrada", "dažus", "ābolus", "un", "apēda", "tos", "ar", "lielu", {"gap": true}, ".", "Tad", "viņš", "atgriezās", "mājās", ",", "saritinājās", "kamolā", "un", "aizvēra", "acis", ".", "Ārā", "sāka", "krist", "pirmās", {"gap": true}, ".", "Ezītis", "saldi", "gulēja", "un", "sapņoja", "par", "nākamo", {"gap": true}, ".", "Mežs", "viņu", "sargāja", "līdz", "pat", "siltajām", "dienām", "."]}, "Ziema": {"t": "Ziemas brīvdienas pie vecmāmiņas", "w": ["Ziemas", "brīvdienās", "mēs", "braucām", "pie", {"gap": true}, "uz", "laukiem", ".", "Visapkārt", "bija", "balts", "un", "dziļš", {"gap": true}, ".", "No", "skursteņa", "kūpēja", {"gap": true}, ",", "un", "logos", "dega", "gaisma", ".", "Vecmāmiņa", "mūs", "sagaidīja", "pie", "durvīm", "ar", "siltu", {"gap": true}, ".", "Istabā", "smaržoja", "pēc", "svaigi", "ceptas", {"gap": true}, ".", "Pēc", "vakariņām", "mēs", "sēdējām", "pie", "krāsns", "un", "klausījāmies", {"gap": true}, ".", "Nākamajā", "rītā", "tētis", "no", "šķūņa", "iznesa", "vecas", {"gap": true}, ".", "Mēs", "devāmies", "uz", "lielo", "kalnu", "aiz", {"gap": true}, ".", "Kalns", "bija", "augsts", ",", "stāvs", "un", "pilns", "ar", "sniegu", ".", "Brālis", "brauca", "pirmais", "un", "skaļi", {"gap": true}, ".", "Es", "braucu", "otrais", "un", "apgāzos", {"gap": true}, ".", "Sniegs", "bija", "visur", ":", "cepurē", ",", "cimdos", "un", "pat", {"gap": true}, ".", "Pēc", "brauciena", "mēs", "uzcēlām", "lielu", "sniega", {"gap": true}, ".", "Tai", "bija", "torņi", ",", "vārti", "un", "šaurs", {"gap": true}, ".", "Tētis", "uzlika", "pils", "galā", "mazu", {"gap": true}, ".", "Vakarā", "kļuva", "ļoti", "auksts", ",", "un", "debesīs", "iedegās", {"gap": true}, ".", "Mēs", "atgriezāmies", "mājās", "nosaluši", ",", "bet", "laimīgi", ".", "Vecmāmiņa", "uzvārīja", "karstu", {"gap": true}, "ar", "medu", ".", "Mēs", "sildījām", "rokas", "pie", "krāsns", "un", "stāstījām", "par", "savu", {"gap": true}, ".", "Kaķis", "gulēja", "uz", "dīvāna", "un", "murrāja", ".", "Tā", "bija", "visjaukākā", "ziemas", {"gap": true}, ".", "Es", "gribētu", ",", "lai", "brīvdienas", "nekad", "nebeigtos", "."]}, "Pavasaris": {"t": "Stārķa atgriešanās", "w": ["Aprīļa", "sākumā", "pār", "laukiem", "atskanēja", "pazīstama", {"gap": true}, ".", "Tas", "bija", "stārķis", ",", "kas", "atgriezās", "no", "siltajām", {"gap": true}, ".", "Viņš", "bija", "lidojis", "daudzas", "dienas", "pāri", "jūrām", "un", {"gap": true}, ".", "Vecā", "ligzda", "uz", "šķūņa", "jumta", "viņu", "vēl", {"gap": true}, ".", "Stārķis", "nolaidās", "ligzdā", "un", "apskatīja", "savu", {"gap": true}, ".", "Ziemas", "vēji", "bija", "izrāvuši", "dažus", {"gap": true}, ".", "Nākamajās", "dienās", "viņš", "nesa", "jaunus", "zarus", "un", {"gap": true}, ".", "Drīz", "atlidoja", "arī", "stārķu", {"gap": true}, ".", "Abi", "kopā", "salaboja", "ligzdu", "un", "padarīja", "to", "siltu", ".", "Pļavā", "kusa", "pēdējais", {"gap": true}, ",", "un", "zeme", "kļuva", "mīksta", ".", "Stārķi", "staigāja", "pa", "pļavu", "un", "meklēja", {"gap": true}, ".", "Bērni", "no", "sētas", "vēroja", "putnus", "un", {"gap": true}, ".", "Vectētis", "stāstīja", ",", "ka", "stārķi", "nes", "mājai", {"gap": true}, ".", "Maijā", "ligzdā", "parādījās", "četras", "baltas", {"gap": true}, ".", "Stārķu", "vecāki", "tās", "sargāja", "dienu", "un", {"gap": true}, ".", "Pēc", "dažām", "nedēļām", "izšķīlās", "pūkaini", {"gap": true}, ".", "Viņi", "visu", "laiku", "bija", {"gap": true}, ".", "Vecāki", "lidoja", "uz", "pļavu", "un", "nesa", "viņiem", {"gap": true}, ".", "Mazuļi", "auga", "ātri", "un", "drīz", "sāka", "vicināt", {"gap": true}, ".", "Bērni", "katru", "rītu", "skrēja", "paskatīties", "uz", "ligzdu", ".", "Pavasaris", "laukos", "bija", "pilns", "ar", "dzīvību", "un", {"gap": true}, ".", "Stārķu", "ģimene", "dzīvoja", "uz", "šķūņa", "jumta", "līdz", "pat", "rudenim", "."]}, "Vasara": {"t": "Brauciens ar laivu", "w": ["Kādā", "siltā", "jūlija", "rītā", "mēs", "ar", "tēti", "devāmies", {"gap": true}, "ar", "laivu", ".", "Laiva", "stāvēja", "upes", "krastā", "starp", "augstām", {"gap": true}, ".", "Tētis", "ielika", "laivā", "airus", ",", "glābšanas", {"gap": true}, "un", "groziņu", "ar", "pusdienām", ".", "Mēs", "uzvilkām", "vestes", "un", "uzmanīgi", "iekāpām", {"gap": true}, ".", "Ūdens", "bija", "mierīgs", "un", {"gap": true}, ".", "Upes", "dibenā", "varēja", "redzēt", "akmeņus", "un", "mazas", {"gap": true}, ".", "Tētis", "airēja", "lēni", ",", "bet", "es", "stūrēju", ".", "Gar", "krastu", "auga", "vītoli", ",", "un", "to", "zari", "pieskārās", {"gap": true}, ".", "Kādā", "līcī", "peldēja", "pīle", "ar", "saviem", {"gap": true}, ".", "Mēs", "apstājāmies", ",", "lai", "viņus", "netraucētu", ".", "Pēc", "stundas", "mēs", "piestājām", "pie", "smilšainas", {"gap": true}, ".", "Tur", "mēs", "peldējāmies", "un", "cēlām", "smilšu", {"gap": true}, ".", "Pusdienās", "mēs", "ēdām", "sviestmaizes", "un", "saldas", {"gap": true}, ".", "Pēkšņi", "debesīs", "parādījās", "tumši", {"gap": true}, ".", "Tētis", "teica", ",", "ka", "jāsteidzas", "mājās", "pirms", {"gap": true}, ".", "Mēs", "ātri", "sakrāmējām", "mantas", "un", "iekāpām", "laivā", ".", "Šoreiz", "airēju", "es", ",", "un", "tētis", "mani", {"gap": true}, ".", "Kad", "sasniedzām", "krastu", ",", "sāka", "līt", "silts", "vasaras", {"gap": true}, ".", "Mēs", "smējāmies", "un", "skrējām", "uz", {"gap": true}, ".", "Vakarā", "mēs", "stāstījām", "mammai", "par", "mūsu", "lielo", {"gap": true}, ".", "Es", "ilgi", "nevarēju", "aizmigt", ",", "jo", "domāju", "par", {"gap": true}, ".", "Nākamajā", "vasarā", "mēs", "noteikti", "brauksim", "atkal", "."]}, "Tautas pasakas": {"t": "Gudrā vāvere un lepnais lācis", "w": ["Reiz", "lielā", "mežā", "dzīvoja", "stiprs", ",", "bet", "ļoti", "lepns", {"gap": true}, ".", "Viņš", "domāja", ",", "ka", "ir", "gudrāks", "par", "visiem", "meža", {"gap": true}, ".", "Tajā", "pašā", "mežā", "dzīvoja", "maza", "un", "gudra", {"gap": true}, ".", "Kādu", "rudeni", "lācis", "ieraudzīja", ",", "ka", "vāvere", "vāc", {"gap": true}, ".", "Viņš", "smējās", "par", "vāveri", "un", "sauca", "viņu", "par", {"gap": true}, ".", "Lācis", "teica", ",", "ka", "viņam", "ziemai", "nekas", "nav", "jāsagatavo", ".", "Vāvere", "klusēja", "un", "turpināja", "savu", {"gap": true}, ".", "Drīz", "atnāca", "ziema", "ar", "lielu", {"gap": true}, ".", "Lācis", "iegāja", "savā", "migā", "un", "aizmiga", ".", "Taču", "ziema", "bija", "ļoti", "gara", ",", "un", "lācis", "pamodās", {"gap": true}, ".", "Viņš", "meklēja", "ēdienu", ",", "bet", "mežs", "bija", "tukšs", "un", {"gap": true}, ".", "Pēkšņi", "viņš", "izdzirdēja", "vāveres", {"gap": true}, ".", "Vāvere", "sēdēja", "uz", "zara", "un", "grauza", {"gap": true}, ".", "Lācis", "kaunējās", ",", "bet", "tomēr", "palūdza", {"gap": true}, ".", "Vāvere", "nesmējās", "par", "lāci", ",", "bet", "iedeva", "viņam", "savus", {"gap": true}, ".", "Lācis", "pateicās", "un", "solīja", "vairs", "nekad", "nebūt", {"gap": true}, ".", "Pavasarī", "viņš", "palīdzēja", "vāverei", "uzcelt", "jaunu", {"gap": true}, ".", "Kopš", "tās", "dienas", "viņi", "kļuva", "par", "labiem", {"gap": true}, ".", "Meža", "zvēri", "brīnījās", "par", "šo", "neparasto", "draudzību", ".", "Vecā", "pūce", "teica", ",", "ka", "gudrība", "ir", "svarīgāka", "par", {"gap": true}, ".", "Un", "lācis", "šos", "vārdus", "atcerējās", "visu", {"gap": true}, ".", "Tā", "beidzas", "pasaka", "par", "gudro", "vāveri", "un", "lepno", "lāci", "."]}};
+
 const PUNCT = [".",",","!","?",";",":"];
+const THEMES = ["Rudens","Ziema","Pavasaris","Vasara","Tautas pasakas"];
+const LEVEL_KEYS = [["viegls","Viegls"],["vidējs","Vidējs"],["grūts","Grūts"]];
+const FONTSIZE = {"viegls":"25px","vidējs":"22px","grūts":"19px"};
 const $ = id=>document.getElementById(id);
-let level = "viegls", ti = -1, cur = null, found = 0, score = 0, sel = null, total = 0;
+
+let themeIdx = 0, level = "viegls", cur = null, found = 0, score = 0, sel = null, total = 0;
+let mode = "hunt";                       // "hunt" vai "challenge"
+const progress = {}, cache = {}, chalCache = {};
+THEMES.forEach(t=>progress[t] = {"viegls":false, "vidējs":false, "grūts":false});
+
+function theme(){ return THEMES[themeIdx]; }
+function unlocked(lv){
+  const p = progress[theme()];
+  if(lv === "viegls") return true;
+  if(lv === "vidējs") return p["viegls"];
+  return p["vidējs"];
+}
+function allDone(){ const p = progress[theme()]; return p["viegls"] && p["vidējs"] && p["grūts"]; }
+
+function buildThemes(){
+  $("themes").innerHTML = "";
+  THEMES.forEach((t,i)=>{
+    const b = document.createElement("button");
+    const p = progress[t];
+    b.className = "pill th" + (i===themeIdx ? " on" : "");
+    b.textContent = t + (p["viegls"] && p["vidējs"] && p["grūts"] ? " ✓" : "");
+    b.onclick = ()=>{ themeIdx = i; level = "viegls"; mode = "hunt"; refresh(); };
+    $("themes").appendChild(b);
+  });
+}
 
 function buildLevels(){
   $("levels").innerHTML = "";
-  [["viegls","Viegls"],["vidējs","Vidējs"],["grūts","Grūts"]].forEach(l=>{
+  LEVEL_KEYS.forEach(l=>{
     const b = document.createElement("button");
-    b.className = "pill" + (l[0]===level?" on":"");
-    b.textContent = l[1];
-    b.onclick = ()=>{ level = l[0]; ti = -1; found = 0; score = 0; buildLevels(); next(); };
+    const open = unlocked(l[0]), done = progress[theme()][l[0]];
+    b.className = "pill" + (done ? " done" : "") + (!open ? " lock" : "") + (l[0]===level && mode==="hunt" ? " on" : "");
+    b.textContent = (open ? "" : "🔒 ") + l[1] + (done ? " ✓" : "");
+    b.onclick = ()=>{
+      if(!open){ $("msg").textContent = "Vispirms izpildi iepriekšējo līmeni."; $("msg").className = "msg bad"; return; }
+      level = l[0]; mode = "hunt"; refresh();
+    };
     $("levels").appendChild(b);
   });
+  $("chal").disabled = !allDone();
+  $("chal").title = allDone() ? "Atvērt izaicinājumu" : "Kļūst pieejams, kad izpildīti visi trīs līmeņi";
+}
+
+function refresh(){
+  buildThemes(); buildLevels();
+  if(mode === "challenge") openChallenge(); else loadText();
+}
+
+/* ---------------- Kļūdu meklēšana ---------------- */
+function loadText(){
+  const key = theme() + "|" + level;
+  if(!cache[key]) cache[key] = JSON.parse(JSON.stringify(LEVELS[level][themeIdx]));
+  cur = cache[key];
+  total = cur.w.filter(t=>typeof t==="object" && !t.ok).length;
+  sel = null;
+  ["answer","check"].forEach(id=>$(id).classList.remove("hidden"));
+  $("help").classList.toggle("hidden", level === "grūts");
+  $("despair").classList.toggle("hidden", level === "grūts");
+  $("back").classList.add("hidden"); $("next").classList.remove("hidden");
+  $("hint").classList.remove("hidden"); $("bar").parentNode && $("bar").parentElement.classList.remove("hidden");
+  $("answer").value = ""; $("answer").disabled = true; $("check").disabled = true; $("help").disabled = true;
+  $("text").style.fontSize = FONTSIZE[level];
+  $("msg").textContent = "";
+  $("hint").textContent = (level === "grūts")
+    ? "Grūtais līmenis: padomu nav. Atrodi visas kļūdas pats!"
+    : "Izvēlies vārdu, kurā, tavuprāt, ir kļūda.";
+  render();
 }
 
 function render(){
@@ -2446,10 +2530,7 @@ function render(){
   cur.w.forEach((tok,i)=>{
     const isObj = typeof tok === "object";
     const word = isObj ? (tok.done ? tok.g : tok.b) : tok;
-    if(!isObj && PUNCT.indexOf(word) >= 0){
-      box.appendChild(document.createTextNode(word));
-      return;
-    }
+    if(!isObj && PUNCT.indexOf(word) >= 0){ box.appendChild(document.createTextNode(word)); return; }
     if(!first) box.appendChild(document.createTextNode(" "));
     first = false;
     const s = document.createElement("span");
@@ -2460,6 +2541,7 @@ function render(){
     }
     s.className = cls;
     s.textContent = word;
+    if(isObj && !tok.ok && !tok.done) s.dataset.err = "1";
     if(!isObj || tok.ok || !tok.done) s.onclick = ()=>pick(i,s);
     box.appendChild(s);
   });
@@ -2468,13 +2550,28 @@ function render(){
   $("sLeft").textContent = left;
   $("sScore").textContent = score;
   $("bar").style.width = total ? ((total-left)/total*100)+"%" : "0%";
+
+  const nextLv = level === "viegls" ? "vidējs" : level === "vidējs" ? "grūts" : null;
   if(left === 0){
-    $("hint").textContent = "Malacis! Visas kļūdas šajā tekstā ir izlabotas. Spied «Nākamais teksts».";
-    $("msg").textContent = ""; $("answer").disabled = true; $("check").disabled = true;
+    if(!progress[theme()][level]){
+      progress[theme()][level] = true;
+      buildThemes(); buildLevels();
+    }
+    $("answer").disabled = true; $("check").disabled = true; $("help").disabled = true;
+    if(nextLv){
+      $("hint").textContent = "Malacis! Līmenis izpildīts. Spied «Nākamais līmenis».";
+      $("next").disabled = false;
+    } else {
+      $("hint").textContent = "Lieliski! Visi trīs līmeņi izpildīti — tagad vari atvērt «Izaicinājumu».";
+      $("next").disabled = true;
+    }
+  } else {
+    $("next").disabled = true;
   }
 }
 
 function pick(i, el){
+  if(mode !== "hunt") return;
   const tok = cur.w[i];
   if(typeof tok === "object" && !tok.ok && !tok.done){
     sel = i;
@@ -2522,28 +2619,27 @@ function check(){
   }
 }
 
-/* --- Palīdzība: 3–4 varianti, viens pareizs --- */
+/* --- Palīdzība: 4 varianti, viens pareizs --- */
 const DIAC_BASE = {"ā":"a","č":"c","ē":"e","ģ":"g","ī":"i","ķ":"k","ļ":"l","ņ":"n","š":"s","ū":"u","ž":"z"};
 const DIAC_ADD = {"a":"ā","c":"č","e":"ē","g":"ģ","i":"ī","k":"ķ","l":"ļ","n":"ņ","s":"š","u":"ū","z":"ž"};
 
 function variants(good, bad){
   const out = new Set();
   if(bad && bad !== good) out.add(bad);
-  // bez garumzīmēm un mīkstinājumiem
-  const plain = [...good].map(c=>DIAC_BASE[c.toLowerCase()] ? (c===c.toUpperCase()?DIAC_BASE[c.toLowerCase()].toUpperCase():DIAC_BASE[c]) : c).join("");
+  const plain = [...good].map(c=>{
+    const b = DIAC_BASE[c.toLowerCase()];
+    return b ? (c === c.toUpperCase() ? b.toUpperCase() : b) : c;
+  }).join("");
   if(plain !== good) out.add(plain);
-  // viens burts dubultots
   const L = good.length;
-  for(let k = 1; k < L-1 && out.size < 6; k++){
+  for(let k = 1; k < L-1; k++){
     const c = good[k];
     if(c !== " " && /[a-zāčēģīķļņšūž]/i.test(c)){ out.add(good.slice(0,k+1) + c + good.slice(k+1)); break; }
   }
-  // lieka garumzīme patskanim vārda sākumā (ne galotnē — tur tā varētu radīt citu pareizu formu)
   for(let k = 1; k < L-2; k++){
     const c = good[k];
     if("aeiu".includes(c)){ out.add(good.slice(0,k) + DIAC_ADD[c] + good.slice(k+1)); break; }
   }
-  // izlaists burts
   if(L > 3) out.add(good.slice(0, Math.floor(L/2)) + good.slice(Math.floor(L/2)+1));
   out.delete(good);
   return [...out];
@@ -2552,9 +2648,7 @@ function variants(good, bad){
 function showHelp(){
   if(sel === null || level === "grūts") return;
   const tok = cur.w[sel];
-  const wrong = variants(tok.g, tok.b);
-  const pick3 = wrong.slice(0, 3);
-  const all = pick3.concat([tok.g]).sort(()=>Math.random()-0.5);
+  const all = variants(tok.g, tok.b).slice(0,3).concat([tok.g]).sort(()=>Math.random()-0.5);
   const box = $("hint");
   box.innerHTML = '<div class="opts"><span>Izvēlies pareizo vārdu:</span></div>';
   const wrap = box.querySelector(".opts");
@@ -2567,7 +2661,7 @@ function showHelp(){
         b.classList.add("no");
         $("msg").textContent = "Nē, šis nav pareizais. Izvēlies citu.";
         $("msg").className = "msg bad";
-      } else {
+      } else if(cur.w.some(t=>typeof t==="object" && !t.ok && !t.done)){
         box.textContent = "Izvēlies nākamo vārdu, kurā, tavuprāt, ir kļūda.";
       }
     };
@@ -2576,30 +2670,73 @@ function showHelp(){
   $("help").disabled = true;
 }
 
-const FONTSIZE = {"viegls":"25px","vidējs":"22px","grūts":"19px"};
+/* ---------------- Izaicinājums ---------------- */
+function openChallenge(){
+  if(!allDone()) return;
+  mode = "challenge";
+  buildLevels();
+  const data = CHALLENGE[theme()];
+  if(!chalCache[theme()]) chalCache[theme()] = {};
+  const saved = chalCache[theme()];
+  $("title").textContent = "★ Izaicinājums: " + data.t;
+  $("text").style.fontSize = "20px";
+  const box = $("text"); box.innerHTML = "";
+  let first = true, g = 0;
+  data.w.forEach(tok=>{
+    if(typeof tok === "string" && PUNCT.indexOf(tok) >= 0){ box.appendChild(document.createTextNode(tok)); return; }
+    if(!first) box.appendChild(document.createTextNode(" "));
+    first = false;
+    if(typeof tok === "object"){
+      const idx = g++;
+      const inp = document.createElement("input");
+      inp.type = "text"; inp.className = "gap"; inp.autocomplete = "off"; inp.spellcheck = false;
+      inp.placeholder = "…";
+      inp.value = saved[idx] || "";
+      const size = ()=>{ inp.style.width = Math.max(110, (inp.value.length + 2) * 12) + "px";
+                         inp.classList.toggle("filled", inp.value.trim() !== ""); updateChal(); };
+      inp.oninput = ()=>{ saved[idx] = inp.value; size(); };
+      inp.onkeydown = e=>{ if(e.key === "Enter"){ e.preventDefault(); const all=[...box.querySelectorAll(".gap")]; const n=all.indexOf(inp)+1; if(all[n]) all[n].focus(); } };
+      box.appendChild(inp);
+      size();
+    } else {
+      const s = document.createElement("span");
+      s.textContent = tok;
+      box.appendChild(s);
+    }
+  });
+  ["answer","check","help","next","despair"].forEach(id=>$(id).classList.add("hidden"));
+  $("back").classList.remove("hidden");
+  $("msg").textContent = "";
+  $("hint").textContent = "Iztēlojies, ka esi rakstnieks, un ieraksti tukšajās vietās vārdus, kas, tavuprāt, tur iederas.";
+  updateChal();
+}
 
-function next(){
-  const set = LEVELS[level];
-  $("text").style.fontSize = FONTSIZE[level];
-  ti = (ti+1) % set.length;
-  cur = JSON.parse(JSON.stringify(set[ti]));
-  total = cur.w.filter(t=>typeof t==="object" && !t.ok).length;
-  sel = null;
-  $("answer").value=""; $("answer").disabled=true; $("check").disabled=true;
-  $("help").disabled = true;
-  $("help").classList.toggle("hidden", level === "grūts");
-  $("msg").textContent=""; $("hint").textContent = (level === "grūts")
-    ? "Grūtais līmenis: padomu nav. Atrodi visas kļūdas pats!"
-    : "Izvēlies vārdu, kurā, tavuprāt, ir kļūda.";
-  render();
+function updateChal(){
+  const all = [...document.querySelectorAll("#text .gap")];
+  const filled = all.filter(x=>x.value.trim() !== "").length;
+  $("sFound").textContent = filled;
+  $("sLeft").textContent = all.length - filled;
+  $("bar").style.width = all.length ? (filled/all.length*100) + "%" : "0%";
+  if(all.length && filled === all.length)
+    $("msg").textContent = "Visas tukšās vietas aizpildītas! Parādi savu stāstu skolotājam.", $("msg").className = "msg good";
 }
 
 $("check").onclick = check;
+const showErr = e=>{ if(e) e.preventDefault(); if(mode==="hunt" && level!=="grūts") $("text").classList.add("reveal"); };
+const hideErr = ()=>$("text").classList.remove("reveal");
+["mousedown","touchstart"].forEach(ev=>$("despair").addEventListener(ev, showErr));
+["mouseup","mouseleave","touchend","touchcancel","blur"].forEach(ev=>$("despair").addEventListener(ev, hideErr));
+document.addEventListener("mouseup", hideErr);
 $("help").onclick = showHelp;
-$("next").onclick = next;
+$("next").onclick = ()=>{
+  const n = level === "viegls" ? "vidējs" : level === "vidējs" ? "grūts" : null;
+  if(n && unlocked(n)){ level = n; mode = "hunt"; refresh(); }
+};
+$("back").onclick = ()=>{ mode = "hunt"; refresh(); };
+$("chal").onclick = ()=>{ if(allDone()) openChallenge(); };
 $("answer").addEventListener("keydown", e=>{ if(e.key==="Enter") check(); });
-buildLevels();
-next();
+
+refresh();
 fit();
 </script>
 </body>
